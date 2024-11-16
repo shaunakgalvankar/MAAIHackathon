@@ -23,5 +23,5 @@ This is the repo for the MAAI Hackathon at Stanford
 4. **Run the Streamlit app:**
 
     ```bash
-    streamlit run app.py
+    streamlit run MAAIHackathon.py.py
     ```
