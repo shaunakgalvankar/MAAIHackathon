@@ -1,6 +1,7 @@
 # streamlit run main.py
 import streamlit as st
 from chat import ingest, start_chat
+import openai
 
 # Initialize session state
 if 'role' not in st.session_state:
@@ -8,7 +9,29 @@ if 'role' not in st.session_state:
 if 'messages' not in st.session_state:
     st.session_state['messages'] = []
 
+st.set_page_config(
+    page_title="Chat with MAAI",
+    page_icon="🦙",
+    layout="centered",
+    initial_sidebar_state="auto",
+    menu_items=None
+)
 
+# Set OpenAI API key
+openai.api_key = st.secrets.openai_key
+
+# Set page title and info
+st.title("Find right mentor/Mentee💬🦙")
+st.info("We connect you with the right mentor/Mentee", icon="📃")
+
+# Initialize session state for messages if not exists
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {
+            "role": "assistant",
+            "content": "Hello! I can help you find the right mentor or mentee. What are you looking for?"
+        }
+    ]
 # Main app
 def main(index ):
     if st.session_state['role'] is None:

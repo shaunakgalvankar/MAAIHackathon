@@ -3,38 +3,19 @@
 
 # ingest.py
 import streamlit as st
+import os
+
 import openai
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings, StorageContext, load_index_from_storage
 from llama_index.llms.openai import OpenAI
 
 def ingest():
-    # Set up Streamlit page configuration
-    st.set_page_config(
-        page_title="Chat with MAAI",
-        page_icon="🦙",
-        layout="centered",
-        initial_sidebar_state="auto",
-        menu_items=None
-    )
-    
-    # Set OpenAI API key
-    openai.api_key = st.secrets.openai_key
-    
-    # Set page title and info
-    st.title("Find right mentor/Mentee💬🦙")
-    st.info("We connect you with the right mentor/Mentee", icon="📃")
-    
-    # Initialize session state for messages if not exists
-    if "messages" not in st.session_state:
-        st.session_state.messages = [
-            {
-                "role": "assistant",
-                "content": "Hello! I can help you find the right mentor or mentee. What are you looking for?"
-            }
-        ]
-    
-    @st.cache_resource(show_spinner=False)
-    def load_data():
+    # Check if index already exists
+    if os.path.exists("./storage"):
+        # Load existing index
+        storage_context = StorageContext.from_defaults(persist_dir="./storage")
+        index = load_index_from_storage(storage_context)
+    else:
         # Load and process documents
         reader = SimpleDirectoryReader(input_dir="./data", recursive=True)
         docs = reader.load_data()
@@ -43,22 +24,27 @@ def ingest():
         Settings.llm = OpenAI(
             model="gpt-3.5-turbo",
             temperature=0.2,
-            system_prompt="""You are an expert mentor matching assistant. 
-            Your role is to help connect mentors and mentees based on their 
-            skills, interests, and goals. Provide detailed, relevant matches 
-            and maintain a professional and supportive tone throughout the 
-            conversation."""
+            system_prompt="""Role:
+You are an expert in matching VCs with startups.  You are given a information about startups. You will always be truthful about the response, if you do not know, you should say I don’t know. Do not use information that is not provided in the startup information.
+
+Action:
+You will think step by step and explain your choices.
+
+Problem:
+
+            You are an expert in matching VCs with startups. 
+            You are given a startup and a VC and you need to match them based on their interests and expertise."""
         )
         
-        # Create and return index
+        # Create new index
         index = VectorStoreIndex.from_documents(docs)
-        return index
+        
+        # Save index to disk
+        index.storage_context.persist("./storage")
     
-    index = load_data()
     return index
-
+    
 # chat.py
-import streamlit as st
 
 def start_chat(index):
     # Initialize chat engine if not in session state
