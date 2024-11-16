@@ -17,12 +17,14 @@ def chat_interface():
         else:
             st.markdown(f"**Bot:** {msg['text']}")
     
-    user_input = st.text_input("You:", key="input")
-    if user_input:
-        st.session_state['messages'].append({"sender": "user", "text": user_input})
-        # Placeholder for bot response
-        bot_response = "This is a response."
-        st.session_state['messages'].append({"sender": "bot", "text": bot_response})
+    with st.form(key='chat_form', clear_on_submit=True):
+        user_input = st.text_input("You:")
+        send_button = st.form_submit_button(label='Send')
+        if send_button and user_input:
+            st.session_state['messages'].append({"sender": "user", "text": user_input})
+            # Placeholder for bot response
+            bot_response = "This is a response."
+            st.session_state['messages'].append({"sender": "bot", "text": bot_response})
     
     if st.button("Back"):
         st.session_state['role'] = None
